@@ -312,6 +312,17 @@ final class NavigationGestureRecognizerDelegate: NSObject, UIGestureRecognizerDe
 	func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
 		let isNotOnRoot = navigationController.viewControllers.count > 1
 		let noModalIsPresented = navigationController.presentedViewController == nil // TODO: check if this check is still needed after iOS 17 public release
+
+		// For regular pan gestures (not edge pan), only allow left-to-right swipe (pop direction).
+		// Without this check, right-to-left swipes trigger a pop transition showing a black screen.
+		if let pan = gestureRecognizer as? UIPanGestureRecognizer,
+		   !(gestureRecognizer is UIScreenEdgePanGestureRecognizer) {
+			let velocity = pan.velocity(in: pan.view)
+			guard velocity.x > 0, abs(velocity.x) > abs(velocity.y) else {
+				return false
+			}
+		}
+
 		return isNotOnRoot && noModalIsPresented
 	}
 }

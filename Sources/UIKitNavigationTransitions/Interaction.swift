@@ -12,7 +12,7 @@ extension UINavigationController {
 
 		let translation = gestureRecognizer.translation(in: gestureRecognizerView).x
 		let width = gestureRecognizerView.bounds.size.width
-		let percent = translation / width
+		let percent = max(0, translation / width)
 
 		switch gestureRecognizer.state {
 		case .possible:
