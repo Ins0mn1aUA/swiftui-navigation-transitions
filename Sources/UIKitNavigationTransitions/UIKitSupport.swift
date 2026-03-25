@@ -4,6 +4,22 @@ import ObjCRuntimeTools
 import Once
 public import UIKit
 
+// MARK: - Clamped Pan Gesture Recognizer
+
+/// A UIPanGestureRecognizer subclass that clamps translation.x to non-negative values.
+/// This prevents the interactive pop transition from dragging the view controller
+/// beyond its original position (showing black background) when the user reverses
+/// swipe direction mid-gesture.
+@available(tvOS, unavailable)
+@available(visionOS, unavailable)
+final class ClampedPanGestureRecognizer: UIPanGestureRecognizer {
+	override func translation(in view: UIView?) -> CGPoint {
+		var t = super.translation(in: view)
+		t.x = max(0, t.x)
+		return t
+	}
+}
+
 public struct UISplitViewControllerColumns: OptionSet {
 	public static let primary = Self(rawValue: 1)
 	public static let supplementary = Self(rawValue: 1 << 1)
@@ -142,7 +158,7 @@ extension UINavigationController {
 		}
 
 		if defaultPanRecognizer == nil {
-			defaultPanRecognizer = UIPanGestureRecognizer()
+			defaultPanRecognizer = ClampedPanGestureRecognizer()
 			defaultPanRecognizer.targets = defaultEdgePanRecognizer.targets // https://stackoverflow.com/a/60526328/1922543
 			defaultPanRecognizer.strongDelegate = NavigationGestureRecognizerDelegate(controller: self)
 			view.addGestureRecognizer(defaultPanRecognizer)
@@ -157,7 +173,7 @@ extension UINavigationController {
 		}
 
 		if panRecognizer == nil {
-			panRecognizer = UIPanGestureRecognizer()
+			panRecognizer = ClampedPanGestureRecognizer()
 			panRecognizer.addTarget(self, action: #selector(handleInteraction))
 			panRecognizer.strongDelegate = NavigationGestureRecognizerDelegate(controller: self)
 			view.addGestureRecognizer(panRecognizer)
