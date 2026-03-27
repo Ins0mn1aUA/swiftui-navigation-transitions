@@ -57,7 +57,7 @@ struct Native: PrimitiveNavigationTransition {
 
 			animator.addAnimations {
 				toView.transform = .identity
-				fromView.transform = CGAffineTransform(translationX: -width * self.parallaxFactor, y: 0)
+				fromView.transform = CGAffineTransform(translationX: (-width * self.parallaxFactor).rounded(.up), y: 0)
 				dimmingView.alpha = self.dimmingAlpha
 				shadowView.transform = CGAffineTransform(translationX: -width, y: 0)
 			}
@@ -75,7 +75,7 @@ struct Native: PrimitiveNavigationTransition {
 
 			dimmingView.alpha = dimmingAlpha
 			shadowView.frame.origin.x = -shadowWidth
-			toView.transform = CGAffineTransform(translationX: -width * parallaxFactor, y: 0)
+			toView.transform = CGAffineTransform(translationX: (-width * parallaxFactor).rounded(.up), y: 0)
 
 			animator.addAnimations {
 				fromView.transform = CGAffineTransform(translationX: width, y: 0)
