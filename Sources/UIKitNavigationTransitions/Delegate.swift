@@ -99,28 +99,28 @@ final class NavigationTransitionAnimatorProvider: NSObject, UIViewControllerAnim
 		fromUIView.clipsToBounds = true
 		toUIView.clipsToBounds = true
 
-		// DEBUG: color navigation bar hierarchy to find white strip
-		if let navBar = container.superview?.subviews.compactMap({ $0 as? UINavigationBar }).first {
-			navBar.backgroundColor = .systemRed // RED = navBar itself
-			navBar.clipsToBounds = true
-			for (i, sub) in navBar.subviews.enumerated() {
-				let colors: [UIColor] = [.systemGreen, .systemBlue, .systemOrange, .systemPurple, .cyan, .magenta]
-				sub.backgroundColor = colors[i % colors.count]
-				print("🟡 NavBar.subviews[\(i)]: \(type(of: sub)) frame=\(sub.frame) clips=\(sub.clipsToBounds) shadow=\(sub.layer.shadowOpacity)")
-				for (j, subsub) in sub.subviews.enumerated() {
-					print("  └─ [\(j)]: \(type(of: subsub)) frame=\(subsub.frame) bg=\(String(describing: subsub.backgroundColor))")
+		// DEBUG: dump full hierarchy to find white strip
+		func dumpHierarchy(_ view: UIView, name: String, depth: Int = 0, maxDepth: Int = 4) {
+			let indent = String(repeating: "  ", count: depth)
+			let bg = view.backgroundColor
+			let shadow = view.layer.shadowOpacity
+			let hasContent = bg != nil || shadow > 0 || !view.clipsToBounds
+			let marker = hasContent ? "⚠️" : "  "
+			print("\(marker)\(indent)\(name): \(type(of: view)) frame=\(view.frame) bg=\(bg?.description ?? "nil") shadow=\(shadow) clips=\(view.clipsToBounds) alpha=\(view.alpha)")
+			if depth < maxDepth {
+				for (i, sub) in view.subviews.enumerated() {
+					dumpHierarchy(sub, name: "[\(i)]", depth: depth + 1, maxDepth: maxDepth)
 				}
 			}
 		}
-		// Also dump fromView and toView top subviews
-		print("🔵 fromView frame=\(fromUIView.frame)")
-		for (i, sub) in fromUIView.subviews.prefix(5).enumerated() {
-			print("  from.sub[\(i)]: \(type(of: sub)) frame=\(sub.frame) bg=\(String(describing: sub.backgroundColor)) shadow=\(sub.layer.shadowOpacity)")
+		print("🔴🔴🔴 === CONTAINER PARENT HIERARCHY ===")
+		if let parent = container.superview {
+			dumpHierarchy(parent, name: "container.superview", maxDepth: 2)
 		}
-		print("🔵 toView frame=\(toUIView.frame)")
-		for (i, sub) in toUIView.subviews.prefix(5).enumerated() {
-			print("  to.sub[\(i)]: \(type(of: sub)) frame=\(sub.frame) bg=\(String(describing: sub.backgroundColor)) shadow=\(sub.layer.shadowOpacity)")
-		}
+		print("🔴🔴🔴 === FROM VIEW HIERARCHY ===")
+		dumpHierarchy(fromUIView, name: "fromView", maxDepth: 3)
+		print("🔴🔴🔴 === TO VIEW HIERARCHY ===")
+		dumpHierarchy(toUIView, name: "toView", maxDepth: 3)
 
 		fromUIView.isUserInteractionEnabled = false
 		toUIView.isUserInteractionEnabled = false
