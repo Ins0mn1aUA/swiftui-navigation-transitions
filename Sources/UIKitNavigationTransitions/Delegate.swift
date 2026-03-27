@@ -99,28 +99,12 @@ final class NavigationTransitionAnimatorProvider: NSObject, UIViewControllerAnim
 		fromUIView.clipsToBounds = true
 		toUIView.clipsToBounds = true
 
-		// DEBUG: dump full hierarchy to find white strip
-		func dumpHierarchy(_ view: UIView, name: String, depth: Int = 0, maxDepth: Int = 4) {
-			let indent = String(repeating: "  ", count: depth)
-			let bg = view.backgroundColor
-			let shadow = view.layer.shadowOpacity
-			let hasContent = bg != nil || shadow > 0 || !view.clipsToBounds
-			let marker = hasContent ? "⚠️" : "  "
-			print("\(marker)\(indent)\(name): \(type(of: view)) frame=\(view.frame) bg=\(bg?.description ?? "nil") shadow=\(shadow) clips=\(view.clipsToBounds) alpha=\(view.alpha)")
-			if depth < maxDepth {
-				for (i, sub) in view.subviews.enumerated() {
-					dumpHierarchy(sub, name: "[\(i)]", depth: depth + 1, maxDepth: maxDepth)
-				}
-			}
-		}
-		print("🔴🔴🔴 === CONTAINER PARENT HIERARCHY ===")
-		if let parent = container.superview {
-			dumpHierarchy(parent, name: "container.superview", maxDepth: 2)
-		}
-		print("🔴🔴🔴 === FROM VIEW HIERARCHY ===")
-		dumpHierarchy(fromUIView, name: "fromView", maxDepth: 3)
-		print("🔴🔴🔴 === TO VIEW HIERARCHY ===")
-		dumpHierarchy(toUIView, name: "toView", maxDepth: 3)
+		// Clear view backgrounds during transition to prevent white edge artifacts.
+		// HostingView has systemBackgroundColor which shows as a white strip at view edges.
+		let fromBg = fromUIView.backgroundColor
+		let toBg = toUIView.backgroundColor
+		fromUIView.backgroundColor = .clear
+		toUIView.backgroundColor = .clear
 
 		fromUIView.isUserInteractionEnabled = false
 		toUIView.isUserInteractionEnabled = false
@@ -155,6 +139,8 @@ final class NavigationTransitionAnimatorProvider: NSObject, UIViewControllerAnim
 
 			fromUIView.clipsToBounds = fromClipsToBounds
 			toUIView.clipsToBounds = toClipsToBounds
+			fromUIView.backgroundColor = fromBg
+			toUIView.backgroundColor = toBg
 			fromUIView.isUserInteractionEnabled = true
 			toUIView.isUserInteractionEnabled = true
 
