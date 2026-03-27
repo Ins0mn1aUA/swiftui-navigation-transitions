@@ -36,6 +36,10 @@ struct Native: PrimitiveNavigationTransition {
 		let width = container.frame.width
 		let height = container.frame.height
 
+		// DEBUG: color and log the nav bar area (top ~107pt) of fromView
+		debugColorNavArea(of: fromView, label: "FROM")
+		debugColorNavArea(of: toView, label: "TO")
+
 		// Dimming overlay (semi-transparent black over the back view)
 		let dimmingView = UIView(frame: container.bounds)
 		dimmingView.backgroundColor = .black
@@ -88,6 +92,48 @@ struct Native: PrimitiveNavigationTransition {
 				shadowView.removeFromSuperview()
 				fromView.transform = .identity
 				toView.transform = .identity
+			}
+		}
+	}
+
+	// MARK: - Debug
+
+	private func debugColorNavArea(of view: UIView, label: String) {
+		let colors: [UIColor] = [.systemRed, .systemGreen, .systemBlue, .systemOrange, .systemPurple, .cyan, .magenta, .yellow, .brown, .systemPink, .systemTeal, .systemIndigo]
+		var colorIndex = 0
+
+		func nextColor() -> UIColor {
+			let c = colors[colorIndex % colors.count]
+			colorIndex += 1
+			return c
+		}
+
+		func walk(_ v: UIView, depth: Int, path: String, maxDepth: Int = 6) {
+			let indent = String(repeating: "  ", count: depth)
+
+			// Only interested in the top ~120pt area (nav bar region)
+			let frameInRoot = v.convert(v.bounds, to: view)
+			guard frameInRoot.origin.y < 120 else { return }
+
+			let color = nextColor()
+			let origBg = v.backgroundColor
+			v.backgroundColor = color
+
+			print("🎨 \(label) \(indent)\(path): \(type(of: v)) frame=\(v.frame) origBg=\(origBg?.description ?? "nil") → \(color.description) clips=\(v.clipsToBounds) layer.mask=\(v.layer.mask != nil)")
+
+			if depth < maxDepth {
+				for (i, sub) in v.subviews.enumerated() {
+					walk(sub, depth: depth + 1, path: "\(path)/[\(i)]", maxDepth: maxDepth)
+				}
+			}
+		}
+
+		print("🎨🎨🎨 === \(label) NAV AREA (top 120pt) ===")
+		// Walk the view itself and all children in the nav area
+		for (i, sub) in view.subviews.enumerated() {
+			let frameInRoot = sub.convert(sub.bounds, to: view)
+			if frameInRoot.origin.y < 120 {
+				walk(sub, depth: 0, path: "[\(i)]")
 			}
 		}
 	}
