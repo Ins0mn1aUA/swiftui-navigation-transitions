@@ -96,7 +96,7 @@ struct Native: PrimitiveNavigationTransition {
 		let view = UIView(frame: CGRect(x: 0, y: 0, width: width, height: height))
 		let gradient = CAGradientLayer()
 		gradient.frame = view.bounds
-		gradient.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.15).cgColor]
+		gradient.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.07).cgColor]
 		gradient.startPoint = CGPoint(x: 0, y: 0.5)
 		gradient.endPoint = CGPoint(x: 1, y: 0.5)
 		view.layer.addSublayer(gradient)
