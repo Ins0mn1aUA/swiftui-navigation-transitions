@@ -106,6 +106,24 @@ final class NavigationTransitionAnimatorProvider: NSObject, UIViewControllerAnim
 		fromUIView.backgroundColor = .clear
 		toUIView.backgroundColor = .clear
 
+		// Also clear the sibling HostingView behind the container.
+		// UINavigationTransitionView contains both the original HostingView (white bg)
+		// and the transition container. If fromView/toView have any edge transparency,
+		// the sibling's white background bleeds through.
+		var siblingBgs: [(UIView, UIColor?)] = []
+		if let parent = container.superview {
+			for sibling in parent.subviews where sibling !== container {
+				func clearBg(_ view: UIView) {
+					if view.backgroundColor != nil {
+						siblingBgs.append((view, view.backgroundColor))
+						view.backgroundColor = .clear
+					}
+					for child in view.subviews { clearBg(child) }
+				}
+				clearBg(sibling)
+			}
+		}
+
 		fromUIView.isUserInteractionEnabled = false
 		toUIView.isUserInteractionEnabled = false
 
@@ -141,6 +159,7 @@ final class NavigationTransitionAnimatorProvider: NSObject, UIViewControllerAnim
 			toUIView.clipsToBounds = toClipsToBounds
 			fromUIView.backgroundColor = fromBg
 			toUIView.backgroundColor = toBg
+			for (view, bg) in siblingBgs { view.backgroundColor = bg }
 			fromUIView.isUserInteractionEnabled = true
 			toUIView.isUserInteractionEnabled = true
 
