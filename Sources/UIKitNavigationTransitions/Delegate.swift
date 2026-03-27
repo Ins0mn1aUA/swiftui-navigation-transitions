@@ -93,6 +93,35 @@ final class NavigationTransitionAnimatorProvider: NSObject, UIViewControllerAnim
 			return animator
 		}
 
+		// Clip views to prevent layer shadows from bleeding through during transition
+		let fromClipsToBounds = fromUIView.clipsToBounds
+		let toClipsToBounds = toUIView.clipsToBounds
+		fromUIView.clipsToBounds = true
+		toUIView.clipsToBounds = true
+
+		// DEBUG: color navigation bar hierarchy to find white strip
+		if let navBar = container.superview?.subviews.compactMap({ $0 as? UINavigationBar }).first {
+			navBar.backgroundColor = .systemRed // RED = navBar itself
+			navBar.clipsToBounds = true
+			for (i, sub) in navBar.subviews.enumerated() {
+				let colors: [UIColor] = [.systemGreen, .systemBlue, .systemOrange, .systemPurple, .cyan, .magenta]
+				sub.backgroundColor = colors[i % colors.count]
+				print("🟡 NavBar.subviews[\(i)]: \(type(of: sub)) frame=\(sub.frame) clips=\(sub.clipsToBounds) shadow=\(sub.layer.shadowOpacity)")
+				for (j, subsub) in sub.subviews.enumerated() {
+					print("  └─ [\(j)]: \(type(of: subsub)) frame=\(subsub.frame) bg=\(String(describing: subsub.backgroundColor))")
+				}
+			}
+		}
+		// Also dump fromView and toView top subviews
+		print("🔵 fromView frame=\(fromUIView.frame)")
+		for (i, sub) in fromUIView.subviews.prefix(5).enumerated() {
+			print("  from.sub[\(i)]: \(type(of: sub)) frame=\(sub.frame) bg=\(String(describing: sub.backgroundColor)) shadow=\(sub.layer.shadowOpacity)")
+		}
+		print("🔵 toView frame=\(toUIView.frame)")
+		for (i, sub) in toUIView.subviews.prefix(5).enumerated() {
+			print("  to.sub[\(i)]: \(type(of: sub)) frame=\(sub.frame) bg=\(String(describing: sub.backgroundColor)) shadow=\(sub.layer.shadowOpacity)")
+		}
+
 		fromUIView.isUserInteractionEnabled = false
 		toUIView.isUserInteractionEnabled = false
 
@@ -124,6 +153,8 @@ final class NavigationTransitionAnimatorProvider: NSObject, UIViewControllerAnim
 		animator.addCompletion { _ in
 			transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
 
+			fromUIView.clipsToBounds = fromClipsToBounds
+			toUIView.clipsToBounds = toClipsToBounds
 			fromUIView.isUserInteractionEnabled = true
 			toUIView.isUserInteractionEnabled = true
 
