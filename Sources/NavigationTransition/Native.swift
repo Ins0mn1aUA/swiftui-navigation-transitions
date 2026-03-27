@@ -24,7 +24,7 @@ extension AnyNavigationTransition {
 struct Native: PrimitiveNavigationTransition {
 	let parallaxFactor: CGFloat
 	let dimmingAlpha: CGFloat
-	private let shadowWidth: CGFloat = 15
+	private let shadowWidth: CGFloat = 45
 
 	func transition(with animator: any Animator, for operation: TransitionOperation, in context: any Context) {
 		let container = context.containerView
