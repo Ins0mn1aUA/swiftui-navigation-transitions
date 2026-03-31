@@ -93,6 +93,13 @@ final class NavigationTransitionAnimatorProvider: NSObject, UIViewControllerAnim
 			return animator
 		}
 
+		if let toVC = transitionContext.viewController(forKey: .to) {
+			let finalFrame = transitionContext.finalFrame(for: toVC)
+			if finalFrame != .zero {
+				toUIView.frame = finalFrame
+			}
+		}
+
 		// Clip views to prevent layer shadows from bleeding through during transition
 		let fromClipsToBounds = fromUIView.clipsToBounds
 		let toClipsToBounds = toUIView.clipsToBounds

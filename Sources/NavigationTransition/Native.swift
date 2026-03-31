@@ -12,6 +12,7 @@ extension AnyNavigationTransition {
 	///   - dimmingAlpha: Maximum opacity of the dimming overlay on the back view. Default is 0.1.
 	public static func native(parallaxFactor: CGFloat = 0.3, dimmingAlpha: CGFloat = 0.1) -> Self {
 		.init(Native(parallaxFactor: parallaxFactor, dimmingAlpha: dimmingAlpha))
+			.animation(.spring(dampingRatio: 1.0))
 	}
 
 	/// Equivalent to `native()` with default parameters.
