@@ -56,6 +56,18 @@ struct Native: PrimitiveNavigationTransition {
 		let fromCornerCurve = fromView.layer.cornerCurve
 		let toCornerCurve = toView.layer.cornerCurve
 
+		// DEBUG: color views to identify what's visible behind corner radius
+		container.backgroundColor = .systemRed          // RED = container
+		fromView.backgroundColor = .systemGreen         // GREEN = fromView (screen leaving)
+		toView.backgroundColor = .systemBlue            // BLUE = toView (screen arriving)
+		dimmingView.backgroundColor = .systemYellow     // YELLOW = dimming overlay
+		if let parent = container.superview {
+			parent.backgroundColor = .magenta           // MAGENTA = parent of container
+			for sibling in parent.subviews where sibling !== container {
+				sibling.backgroundColor = .cyan         // CYAN = sibling views
+			}
+		}
+
 		switch operation {
 		case .push:
 			container.insertSubview(toView, aboveSubview: fromView)
