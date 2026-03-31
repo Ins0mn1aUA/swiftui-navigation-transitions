@@ -56,10 +56,6 @@ struct Native: PrimitiveNavigationTransition {
 		let fromCornerCurve = fromView.layer.cornerCurve
 		let toCornerCurve = toView.layer.cornerCurve
 
-		// Black container background so rounded corners reveal black, not white siblings
-		let containerBg = container.backgroundColor
-		container.backgroundColor = .black
-
 		switch operation {
 		case .push:
 			container.insertSubview(toView, aboveSubview: fromView)
@@ -89,7 +85,6 @@ struct Native: PrimitiveNavigationTransition {
 				fromView.transform = .identity
 				toView.layer.cornerRadius = toCornerRadius
 				toView.layer.cornerCurve = toCornerCurve
-				container.backgroundColor = containerBg
 			}
 
 		case .pop:
@@ -98,7 +93,7 @@ struct Native: PrimitiveNavigationTransition {
 			container.insertSubview(shadowView, aboveSubview: dimmingView)
 
 			dimmingView.alpha = dimmingAlpha
-			shadowView.frame.origin.x = -shadowWidth
+			shadowView.frame.origin.x = 0
 			toView.transform = CGAffineTransform(translationX: -width * parallaxFactor, y: 0)
 
 			if cornerRadius > 0 {
@@ -122,7 +117,6 @@ struct Native: PrimitiveNavigationTransition {
 				fromView.layer.cornerCurve = fromCornerCurve
 				toView.layer.cornerRadius = toCornerRadius
 				toView.layer.cornerCurve = toCornerCurve
-				container.backgroundColor = containerBg
 			}
 		}
 	}
