@@ -42,12 +42,10 @@ struct Native: PrimitiveNavigationTransition {
 		let height = container.frame.height
 		let cornerRadius = screenCornerRadius
 
-		// Dimming overlay — added as subview of toView so it doesn't bleed
-		// through fromView's rounded corners during the transition.
-		let dimmingView = UIView(frame: toView.bounds)
+		// Dimming overlay (semi-transparent black over the back view)
+		let dimmingView = UIView(frame: container.bounds)
 		dimmingView.backgroundColor = .black
 		dimmingView.isUserInteractionEnabled = false
-		dimmingView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 
 		// Edge shadow (gradient on the left edge of the front view)
 		let shadowView = makeShadowView(width: shadowWidth, height: height)
@@ -58,14 +56,16 @@ struct Native: PrimitiveNavigationTransition {
 		let fromCornerCurve = fromView.layer.cornerCurve
 		let toCornerCurve = toView.layer.cornerCurve
 
+		// Black container background so rounded corners reveal black, not white siblings
+		let containerBg = container.backgroundColor
+		container.backgroundColor = .black
+
 		switch operation {
 		case .push:
 			container.insertSubview(toView, aboveSubview: fromView)
+			container.insertSubview(dimmingView, belowSubview: toView)
 			container.insertSubview(shadowView, belowSubview: toView)
 
-			// Dimming lives on fromView during push (darkens the receding view)
-			dimmingView.frame = fromView.bounds
-			fromView.addSubview(dimmingView)
 			dimmingView.alpha = 0
 			shadowView.frame.origin.x = width - shadowWidth
 			toView.transform = CGAffineTransform(translationX: width, y: 0)
@@ -89,15 +89,14 @@ struct Native: PrimitiveNavigationTransition {
 				fromView.transform = .identity
 				toView.layer.cornerRadius = toCornerRadius
 				toView.layer.cornerCurve = toCornerCurve
+				container.backgroundColor = containerBg
 			}
 
 		case .pop:
 			container.insertSubview(toView, belowSubview: fromView)
-			container.insertSubview(shadowView, aboveSubview: toView)
+			container.insertSubview(dimmingView, aboveSubview: toView)
+			container.insertSubview(shadowView, aboveSubview: dimmingView)
 
-			// Dimming lives on toView during pop (darkens the revealed view)
-			dimmingView.frame = toView.bounds
-			toView.addSubview(dimmingView)
 			dimmingView.alpha = dimmingAlpha
 			shadowView.frame.origin.x = -shadowWidth
 			toView.transform = CGAffineTransform(translationX: -width * parallaxFactor, y: 0)
@@ -123,6 +122,7 @@ struct Native: PrimitiveNavigationTransition {
 				fromView.layer.cornerCurve = fromCornerCurve
 				toView.layer.cornerRadius = toCornerRadius
 				toView.layer.cornerCurve = toCornerCurve
+				container.backgroundColor = containerBg
 			}
 		}
 	}
