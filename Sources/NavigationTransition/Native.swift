@@ -27,6 +27,10 @@ struct Native: PrimitiveNavigationTransition {
 	let dimmingAlpha: CGFloat
 	private let shadowWidth: CGFloat = 45
 
+	private var screenCornerRadius: CGFloat {
+		(UIScreen.main.value(forKey: "displayCornerRadius") as? CGFloat) ?? 0
+	}
+
 	func transition(with animator: any Animator, for operation: TransitionOperation, in context: any Context) {
 		let container = context.containerView
 		guard
@@ -36,7 +40,7 @@ struct Native: PrimitiveNavigationTransition {
 
 		let width = container.frame.width
 		let height = container.frame.height
-
+		let cornerRadius = screenCornerRadius
 
 		// Dimming overlay (semi-transparent black over the back view)
 		let dimmingView = UIView(frame: container.bounds)
@@ -45,6 +49,12 @@ struct Native: PrimitiveNavigationTransition {
 
 		// Edge shadow (gradient on the left edge of the front view)
 		let shadowView = makeShadowView(width: shadowWidth, height: height)
+
+		// Save original corner radius state
+		let fromCornerRadius = fromView.layer.cornerRadius
+		let toCornerRadius = toView.layer.cornerRadius
+		let fromCornerCurve = fromView.layer.cornerCurve
+		let toCornerCurve = toView.layer.cornerCurve
 
 		switch operation {
 		case .push:
@@ -56,17 +66,25 @@ struct Native: PrimitiveNavigationTransition {
 			shadowView.frame.origin.x = width - shadowWidth
 			toView.transform = CGAffineTransform(translationX: width, y: 0)
 
+			if cornerRadius > 0 {
+				toView.layer.cornerRadius = cornerRadius
+				toView.layer.cornerCurve = .continuous
+			}
+
 			animator.addAnimations {
 				toView.transform = .identity
 				fromView.transform = CGAffineTransform(translationX: -width * self.parallaxFactor, y: 0)
 				dimmingView.alpha = self.dimmingAlpha
 				shadowView.transform = CGAffineTransform(translationX: -width, y: 0)
+				toView.layer.cornerRadius = 0
 			}
 
 			animator.addCompletion { _ in
 				dimmingView.removeFromSuperview()
 				shadowView.removeFromSuperview()
 				fromView.transform = .identity
+				toView.layer.cornerRadius = toCornerRadius
+				toView.layer.cornerCurve = toCornerCurve
 			}
 
 		case .pop:
@@ -77,6 +95,11 @@ struct Native: PrimitiveNavigationTransition {
 			dimmingView.alpha = dimmingAlpha
 			shadowView.frame.origin.x = -shadowWidth
 			toView.transform = CGAffineTransform(translationX: -width * parallaxFactor, y: 0)
+
+			if cornerRadius > 0 {
+				fromView.layer.cornerRadius = cornerRadius
+				fromView.layer.cornerCurve = .continuous
+			}
 
 			animator.addAnimations {
 				fromView.transform = CGAffineTransform(translationX: width, y: 0)
@@ -90,6 +113,10 @@ struct Native: PrimitiveNavigationTransition {
 				shadowView.removeFromSuperview()
 				fromView.transform = .identity
 				toView.transform = .identity
+				fromView.layer.cornerRadius = fromCornerRadius
+				fromView.layer.cornerCurve = fromCornerCurve
+				toView.layer.cornerRadius = toCornerRadius
+				toView.layer.cornerCurve = toCornerCurve
 			}
 		}
 	}
