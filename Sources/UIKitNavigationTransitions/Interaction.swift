@@ -30,13 +30,18 @@ extension UINavigationController {
 			let velocity = gestureRecognizer.velocity(in: gestureRecognizerView).x
 
 			if velocity > 675 || (percent >= 0.2 && velocity > -200) {
-				let resistance: Double = 800
-				let maxSpeed: Double = 1.0
-				let nominalSpeed = max(0.99, velocity / resistance)
-				let speed = min(nominalSpeed, maxSpeed)
+				// Override the animator's timing to easeOut to prevent overshoot
+				// (spring or other curves can cause the toView to overshoot past its
+				// resting position when the interactive transition completes quickly).
+				if let animator = delegate.currentAnimatorProvider?.currentAnimator {
+					let remainingFraction = 1.0 - animator.fractionComplete
+					animator.pauseAnimation()
+					animator.continueAnimation(
+						withTimingParameters: UICubicTimingParameters(animationCurve: .easeOut),
+						durationFactor: CGFloat(remainingFraction),
+					)
+				}
 
-				delegate.interactionController?.completionSpeed = speed
-				delegate.interactionController?.completionCurve = .easeOut
 				delegate.interactionController?.finish()
 			} else {
 				delegate.interactionController?.cancel()

@@ -7,6 +7,7 @@ final class NavigationTransitionDelegate: NSObject, UINavigationControllerDelega
 	var transition: AnyNavigationTransition
 	private weak var baseDelegate: (any UINavigationControllerDelegate)? = nil
 	var interactionController: UIPercentDrivenInteractiveTransition? = nil
+	private(set) var currentAnimatorProvider: NavigationTransitionAnimatorProvider?
 
 	init(transition: AnyNavigationTransition, baseDelegate: (any UINavigationControllerDelegate)?) {
 		self.transition = transition
@@ -35,11 +36,15 @@ final class NavigationTransitionDelegate: NSObject, UINavigationControllerDelega
 			let animation = transition.animation,
 			let operation = NavigationTransitionOperation(operation)
 		{
-			NavigationTransitionAnimatorProvider(
-				transition: transition,
-				animation: animation,
-				operation: operation,
-			)
+			{
+				let provider = NavigationTransitionAnimatorProvider(
+					transition: transition,
+					animation: animation,
+					operation: operation,
+				)
+				currentAnimatorProvider = provider
+				return provider
+			}()
 		} else {
 			nil
 		}
@@ -50,6 +55,10 @@ final class NavigationTransitionAnimatorProvider: NSObject, UIViewControllerAnim
 	let transition: AnyNavigationTransition
 	let animation: Animation
 	let operation: NavigationTransitionOperation
+
+	/// The most recently created animator, exposed so the interaction handler
+	/// can override its timing curve before the percent-driven transition finishes.
+	private(set) var currentAnimator: UIViewPropertyAnimator?
 
 	init(transition: AnyNavigationTransition, animation: Animation, operation: NavigationTransitionOperation) {
 		self.transition = transition
@@ -84,6 +93,7 @@ final class NavigationTransitionAnimatorProvider: NSObject, UIViewControllerAnim
 			timingParameters: animation.timingParameters,
 		)
 		cachedAnimators[ObjectIdentifier(transitionContext)] = animator
+		currentAnimator = animator
 
 		let container = transitionContext.containerView
 		guard
