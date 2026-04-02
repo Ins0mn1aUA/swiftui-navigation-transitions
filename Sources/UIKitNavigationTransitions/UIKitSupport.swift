@@ -6,10 +6,10 @@ public import UIKit
 
 // MARK: - Clamped Pan Gesture Recognizer
 
-/// A UIPanGestureRecognizer subclass that clamps translation.x to non-negative values.
-/// This prevents the interactive pop transition from dragging the view controller
-/// beyond its original position (showing black background) when the user reverses
-/// swipe direction mid-gesture.
+/// A UIPanGestureRecognizer subclass that clamps translation and velocity.
+/// - translation.x is clamped to non-negative to prevent dragging past origin.
+/// - velocity.x is capped to prevent the system's completion animation from
+///   overshooting the destination view past its resting position on fast swipes.
 @available(tvOS, unavailable)
 @available(visionOS, unavailable)
 final class ClampedPanGestureRecognizer: UIPanGestureRecognizer {
@@ -17,6 +17,12 @@ final class ClampedPanGestureRecognizer: UIPanGestureRecognizer {
 		var t = super.translation(in: view)
 		t.x = max(0, t.x)
 		return t
+	}
+
+	override func velocity(in view: UIView?) -> CGPoint {
+		var v = super.velocity(in: view)
+		v.x = min(v.x, 1000)
+		return v
 	}
 }
 
