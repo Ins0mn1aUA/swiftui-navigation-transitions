@@ -23,7 +23,7 @@ final class ClampedPanGestureRecognizer: UIPanGestureRecognizer {
 		var v = super.velocity(in: view)
 		let threshold: CGFloat = 1500
 		if v.x > threshold {
-			v.x = threshold + (v.x - threshold) * 0.1
+			v.x = threshold + (v.x - threshold) * 0.05
 		}
 		print("[ClampedPan] state=\(state.rawValue) raw=\(Int(super.velocity(in: view).x)) damped=\(Int(v.x))")
 		return v
