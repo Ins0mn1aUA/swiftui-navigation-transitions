@@ -115,6 +115,28 @@ This even works to override its behavior while maintaining the **default system 
 .navigationTransition(.default, interactivity: .pan) // ✨
 ```
 
+## Known Limitations
+
+### Destination view overshoot on fast swipe-back with `.default` transition
+
+When using `.navigationTransition(.default, interactivity: .pan)`, a very fast swipe-back gesture can cause the destination view (the view being returned to) to momentarily overshoot past its resting position, briefly revealing a black area on the left edge of the screen.
+
+**Why this happens:**
+
+With `.default` transition, the library does not provide a custom animation controller — it returns `nil` from `navigationController(_:animationControllerFor:)`, so UIKit uses its own built-in push/pop animation. The library also does not provide a custom interaction controller for `.default` transitions.
+
+What the library *does* do is create a full-screen `UIPanGestureRecognizer` and copy the internal targets from UIKit's system `interactivePopGestureRecognizer` (an edge pan gesture). This effectively extends the system's edge-pan-to-pop behavior to a full-screen pan gesture.
+
+However, a full-screen pan gesture can generate significantly higher finger velocities than an edge pan (because the finger has more room to accelerate). UIKit's internal interactive transition handler reads this velocity to calculate the completion animation speed. When the velocity is very high, the completion animation overshoots due to UIKit's internal spring timing — and since the animation is entirely managed by UIKit, there is no way to clamp the destination view's position or override the animation's timing curve.
+
+**Current mitigation:**
+
+`ClampedPanGestureRecognizer` applies soft velocity damping: velocities below 1000 pt/s pass through unchanged, while higher velocities are dampened (excess is reduced to 5%). This significantly reduces the overshoot but may not eliminate it entirely on very fast swipes.
+
+**Proper fix:**
+
+The only way to fully eliminate this would be to implement a custom animation controller that replicates the default iOS navigation pop transition (parallax, dimming overlay, edge shadow) but with a non-overshooting timing curve (e.g. `easeInOut`), paired with the library's own `UIPercentDrivenInteractiveTransition`. This would give full control over both the animation values and the interactive completion behavior.
+
 ## Installation
 
 Add the package via Swift Package Manager:
