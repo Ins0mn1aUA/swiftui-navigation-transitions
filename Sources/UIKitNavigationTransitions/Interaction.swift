@@ -31,7 +31,7 @@ extension UINavigationController {
 
 			if velocity > 675 || (percent >= 0.2 && velocity > -200) {
 				let resistance: Double = 800
-				let maxSpeed: Double = 2.25
+				let maxSpeed: Double = 1.0
 				let nominalSpeed = max(0.99, velocity / resistance)
 				let speed = min(nominalSpeed, maxSpeed)
 
