@@ -22,11 +22,7 @@ final class NavigationTransitionDelegate: NSObject, UINavigationControllerDelega
 	}
 
 	func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: any UIViewControllerAnimatedTransitioning) -> (any UIViewControllerInteractiveTransitioning)? {
-		if !transition.isDefault {
-			interactionController
-		} else {
-			nil
-		}
+		interactionController
 	}
 
 	func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation, from fromVC: UIViewController, to toVC: UIViewController) -> (any UIViewControllerAnimatedTransitioning)? {
