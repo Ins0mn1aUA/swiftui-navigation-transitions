@@ -21,7 +21,7 @@ final class ClampedPanGestureRecognizer: UIPanGestureRecognizer {
 
 	override func velocity(in view: UIView?) -> CGPoint {
 		var v = super.velocity(in: view)
-		let threshold: CGFloat = 1500
+		let threshold: CGFloat = 1000
 		if v.x > threshold {
 			v.x = threshold + (v.x - threshold) * 0.05
 		}
