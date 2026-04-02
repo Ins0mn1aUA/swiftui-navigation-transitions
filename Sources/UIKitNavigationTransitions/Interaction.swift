@@ -36,6 +36,7 @@ extension UINavigationController {
 				let speed = min(nominalSpeed, maxSpeed)
 
 				delegate.interactionController?.completionSpeed = speed
+				delegate.interactionController?.completionCurve = .easeOut
 				delegate.interactionController?.finish()
 			} else {
 				delegate.interactionController?.cancel()
